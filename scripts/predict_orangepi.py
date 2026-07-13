@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
-在 Orange Pi（ARM64）上使用 ONNXRuntime 进行 YOLOv11 推理的示例脚本。
+在 Orange Pi（ARM64）上使用 ONNXRuntime 进行 YOLOv11 推理的示例脚本。.
 
 建议流程：
 1) 在 PC 上运行 scripts/export_onnx.py 导出 .onnx 模型
@@ -13,34 +12,30 @@
 本脚本仅依赖 onnxruntime + opencv，不依赖 PyTorch 与 ultralytics。
 """
 
+from __future__ import annotations
+
 import os
-import sys
 from pathlib import Path
-from typing import List, Tuple
 
 import cv2
 import numpy as np
 import onnxruntime as ort
-
 
 # ===== 在此处直接配置推理参数（按需修改） =====
 CONFIG = {
     # 模型与类别
     "onnx_model": "/root/YOLOv11/runs/train/exp/weights/best.onnx",  # 请替换为 Orange Pi 上的实际路径
     "class_names": None,  # 可传入类别名称列表；为 None 时以数字索引显示
-
     # 输入与预处理
     "imgsz": (640, 640),  # (w, h)
     "conf_thres": 0.25,
     "iou_thres": 0.7,
     "use_letterbox": True,  # 是否信箱缩放，保持纵横比
-
     # 设备/性能
     "providers": [
         "CPUExecutionProvider"
         # 若 Orange Pi 支持 ARM NN / OpenVINO / CoreML，可按需增添对应 EP
     ],
-
     # I/O 源
     "source": "/home/orangepi/samples/bus.jpg",  # 可为 图片/视频/目录/摄像头编号(如 0)
     "save_vis": True,
@@ -48,21 +43,23 @@ CONFIG = {
 }
 
 
-def letterbox(im: np.ndarray, new_shape: Tuple[int, int], color=(114, 114, 114)) -> Tuple[np.ndarray, float, Tuple[int, int]]:
-    """信箱缩放：保持纵横比缩放到目标尺寸，并在空白处填充灰色边。返回 (图像, 缩放比例, (pad_w, pad_h))"""
+def letterbox(
+    im: np.ndarray, new_shape: tuple[int, int], color=(114, 114, 114)
+) -> tuple[np.ndarray, float, tuple[int, int]]:
+    """信箱缩放：保持纵横比缩放到目标尺寸，并在空白处填充灰色边。返回 (图像, 缩放比例, (pad_w, pad_h))."""
     h, w = im.shape[:2]
     new_w, new_h = new_shape
     r = min(new_w / w, new_h / h)
-    nw, nh = int(round(w * r)), int(round(h * r))
+    nw, nh = round(w * r), round(h * r)
     im_resized = cv2.resize(im, (nw, nh), interpolation=cv2.INTER_LINEAR)
     canvas = np.full((new_h, new_w, 3), color, dtype=np.uint8)
     dw, dh = (new_w - nw) // 2, (new_h - nh) // 2
-    canvas[dh:dh + nh, dw:dw + nw] = im_resized
+    canvas[dh : dh + nh, dw : dw + nw] = im_resized
     return canvas, r, (dw, dh)
 
 
-def nms(boxes: np.ndarray, scores: np.ndarray, iou_thres: float) -> List[int]:
-    """简易 NMS（适合少量框）。返回保留的索引列表。"""
+def nms(boxes: np.ndarray, scores: np.ndarray, iou_thres: float) -> list[int]:
+    """简易 NMS（适合少量框）。返回保留的索引列表。."""
     idxs = scores.argsort()[::-1]
     keep = []
     while idxs.size > 0:
@@ -76,7 +73,7 @@ def nms(boxes: np.ndarray, scores: np.ndarray, iou_thres: float) -> List[int]:
 
 
 def compute_iou(box: np.ndarray, boxes: np.ndarray) -> np.ndarray:
-    """计算单个框与多框的 IoU。"""
+    """计算单个框与多框的 IoU。."""
     x1 = np.maximum(box[0], boxes[:, 0])
     y1 = np.maximum(box[1], boxes[:, 1])
     x2 = np.minimum(box[2], boxes[:, 2])
@@ -88,8 +85,8 @@ def compute_iou(box: np.ndarray, boxes: np.ndarray) -> np.ndarray:
     return inter / (union + 1e-6)
 
 
-def preprocess_bgr(image_bgr: np.ndarray, imgsz: Tuple[int, int], use_letterbox: bool) -> Tuple[np.ndarray, dict]:
-    """将 BGR 图像预处理为 NCHW float32/0-1，并返回元数据用于反变换坐标。"""
+def preprocess_bgr(image_bgr: np.ndarray, imgsz: tuple[int, int], use_letterbox: bool) -> tuple[np.ndarray, dict]:
+    """将 BGR 图像预处理为 NCHW float32/0-1，并返回元数据用于反变换坐标。."""
     if use_letterbox:
         lb, r, (dw, dh) = letterbox(image_bgr, imgsz)
         meta = {"ratio": r, "pad": (dw, dh), "shape": image_bgr.shape[:2]}
@@ -104,12 +101,11 @@ def preprocess_bgr(image_bgr: np.ndarray, imgsz: Tuple[int, int], use_letterbox:
     return im, meta
 
 
-def postprocess(outputs: List[np.ndarray], meta: dict, conf_thres: float, iou_thres: float, num_classes: int) -> List[np.ndarray]:
-    """
-    适配常见 YOLO 导出ONNX的输出格式：
-    - 假设输出为 (N, num_dets, 4+num_classes)，坐标为 [cx, cy, w, h] 或 [x1, y1, x2, y2]
-    - 这里先尝试识别格式；若与你的导出不同，请按需调整。
-    返回：每个检测 [x1, y1, x2, y2, score, cls]
+def postprocess(
+    outputs: list[np.ndarray], meta: dict, conf_thres: float, iou_thres: float, num_classes: int
+) -> list[np.ndarray]:
+    """适配常见 YOLO 导出ONNX的输出格式： - 假设输出为 (N, num_dets, 4+num_classes)，坐标为 [cx, cy, w, h] 或 [x1, y1, x2, y2] -
+    这里先尝试识别格式；若与你的导出不同，请按需调整。 返回：每个检测 [x1, y1, x2, y2, score, cls].
     """
     pred = outputs[0]
     if pred.ndim == 3:
@@ -156,8 +152,8 @@ def postprocess(outputs: List[np.ndarray], meta: dict, conf_thres: float, iou_th
     return dets.tolist()
 
 
-def visualize(image_bgr: np.ndarray, detections: List[List[float]], class_names: List[str] = None) -> np.ndarray:
-    """在图像上绘制检测结果。detections: [x1,y1,x2,y2,score,cls]"""
+def visualize(image_bgr: np.ndarray, detections: list[list[float]], class_names: list[str] | None = None) -> np.ndarray:
+    """在图像上绘制检测结果。detections: [x1,y1,x2,y2,score,cls]."""
     im = image_bgr.copy()
     for x1, y1, x2, y2, s, c in detections:
         p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
@@ -169,7 +165,7 @@ def visualize(image_bgr: np.ndarray, detections: List[List[float]], class_names:
 
 
 def infer_on_image(session: ort.InferenceSession, image_path: str) -> np.ndarray:
-    """对单张图片进行推理并返回可视化结果。"""
+    """对单张图片进行推理并返回可视化结果。."""
     img = cv2.imread(image_path)
     assert img is not None, f"无法读取图像: {image_path}"
     inp, meta = preprocess_bgr(img, CONFIG["imgsz"], CONFIG["use_letterbox"])
@@ -209,7 +205,7 @@ def main() -> None:
             pred0 = outputs[0][0]
             num_classes = pred0.shape[-1] - 4 if pred0.ndim == 2 else pred0.shape[1] - 4
             dets = postprocess(outputs, meta, CONFIG["conf_thres"], CONFIG["iou_thres"], num_classes)
-            vis = visualize(frame, dets, CONFIG["class_names"]) 
+            vis = visualize(frame, dets, CONFIG["class_names"])
             cv2.imshow("YOLOv11-ONNX", vis)
             if cv2.waitKey(1) & 0xFF == 27:
                 break
@@ -249,7 +245,7 @@ def main() -> None:
                     pred0 = outputs[0][0]
                     num_classes = pred0.shape[-1] - 4 if pred0.ndim == 2 else pred0.shape[1] - 4
                     dets = postprocess(outputs, meta, CONFIG["conf_thres"], CONFIG["iou_thres"], num_classes)
-                    vis = visualize(frame, dets, CONFIG["class_names"]) 
+                    vis = visualize(frame, dets, CONFIG["class_names"])
                     writer.write(vis)
                 writer.release()
                 cap.release()
@@ -258,5 +254,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
