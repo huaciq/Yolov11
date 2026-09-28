@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
-推理脚本（YOLOv11 / Ultralytics 接口）
+推理脚本（YOLOv11 / Ultralytics 接口）.
 
 用法：
 - 直接运行该脚本即可，无需命令行参数
@@ -23,7 +22,7 @@ from ultralytics import YOLO
 # ===== 在此处直接配置推理参数（按需修改） =====
 CONFIG = {
     "model": "/root/YOLOv11/runs/train/exp/weights/best.pt",  # 替换为你的权重路径
-    "source": "/root/YOLOv11/ultralytics/assets/bus.jpg",       # 可为 图片/视频/目录/摄像头编号(如 0)
+    "source": "/root/YOLOv11/ultralytics/assets/bus.jpg",  # 可为 图片/视频/目录/摄像头编号(如 0)
     "overrides": {
         # 推理阈值与设备
         "imgsz": 640,
@@ -34,7 +33,6 @@ CONFIG = {
         "half": False,
         "dnn": False,
         "vid_stride": 1,
-
         # 保存与可视化
         "save": True,
         "save_txt": False,
@@ -42,7 +40,6 @@ CONFIG = {
         "save_crop": False,
         "show": False,
         "retina_masks": False,
-
         # 输出目录
         "project": "/root/YOLOv11/runs/predict",
         "name": "exp",
@@ -60,7 +57,11 @@ def main() -> None:
 
     # 初始化模型并执行推理
     model = YOLO(CONFIG["model"])
-    results = model.predict(source=CONFIG["source"], stream=CONFIG["stream"], **{k: v for k, v in CONFIG["overrides"].items() if v is not None})
+    results = model.predict(
+        source=CONFIG["source"],
+        stream=CONFIG["stream"],
+        **{k: v for k, v in CONFIG["overrides"].items() if v is not None},
+    )
 
     # 打印结果或简单统计
     if CONFIG["stream"]:
@@ -74,5 +75,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
