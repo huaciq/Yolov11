@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
-验证脚本（YOLOv11 / Ultralytics 接口）
+验证脚本（YOLOv11 / Ultralytics 接口）.
 
 用法：
 - 直接运行该脚本即可，无需命令行参数
@@ -26,19 +25,17 @@ CONFIG = {
     "overrides": {
         # 数据与基础配置
         "data": "/root/YOLOv11/ultralytics/cfg/datasets/dataset.yaml",  # 替换为你的 data.yaml
-        "split": "val",       # 可选："val" 或 "test"
+        "split": "val",  # 可选："val" 或 "test"
         "imgsz": 640,
         "batch": 1,
         "workers": 20,
-        "device": "cuda:0",   # 可选："cpu"、"cuda"、"cuda:0"
-
+        "device": "cuda:0",  # 可选："cpu"、"cuda"、"cuda:0"
         # 推理与评估阈值
         "conf": 0.45,
         "iou": 0.6,
         "max_det": 300,
         "half": False,
         "dnn": False,
-
         # 输出与日志
         "project": "/root/YOLOv11/runs/val",
         "name": "exp",
@@ -65,5 +62,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
