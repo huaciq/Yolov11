@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
-训练脚本（YOLOv11 / Ultralytics 接口）
+训练脚本（YOLOv11 / Ultralytics 接口）.
 
 用法：
 - 直接运行该脚本即可，无需命令行参数
@@ -34,23 +33,20 @@ CONFIG = {
         "device": "cuda:0",  # 可选："cpu"、"cuda"、"cuda:0"
         "seed": 0,
         "cache": True,
-
         # 输出与日志
         "project": "/root/YOLOv11/runs/train",
         "name": "exp",
         "exist_ok": True,
         "save_period": -1,
         "plots": True,
-
         # 优化器/调度器（常用项）
         "lr0": 0.001,
         "lrf": 0.01,
         "momentum": 0.937,
         "weight_decay": 0.0005,
-
         # 训练行为
         "pretrained": True,  # 若使用 .yaml 初始化并加载预训练，可设为 True
-        "resume": False,      # 若继续训练（目录下需有 last.pt）
+        "resume": False,  # 若继续训练（目录下需有 last.pt）
     },
 }
 
@@ -73,5 +69,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
