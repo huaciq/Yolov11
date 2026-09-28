@@ -1,19 +1,16 @@
 # YOLO 数据集配置文件
 # 根路径下包含 train/ 与 val/ 两个子目录，每个子目录下有 images/ 与 labels/
 
-path: /root/autodl-tmp/dataset  # 数据集根目录（修正为实际存在路径）
+path: /root/autodl-tmp/dataset # 数据集根目录（修正为实际存在路径）
 
-train: train/images        # 训练集图片目录（相对于 path）
-val: val/images            # 验证集图片目录（相对于 path）
+train: train/images # 训练集图片目录（相对于 path）
+val: val/images # 验证集图片目录（相对于 path）
 
 # 如果有测试集，可按需开启
 # test: test/images
 
-nc: 3                      # 类别数
-names:                     # 类别名称映射
+nc: 3 # 类别数
+names: # 类别名称映射
   0: two_wheeler
   1: helmet
   2: without_helmet
-
-
-
