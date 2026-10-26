@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
-将 YOLOv11/Ultralytics 的 .pt 权重导出为 ONNX（适用于 Orange Pi 等 ARM64 设备上的 onnxruntime 推理）
+将 YOLOv11/Ultralytics 的 .pt 权重导出为 ONNX（适用于 Orange Pi 等 ARM64 设备上的 onnxruntime 推理）.
 
 用法：
 - 直接运行该脚本即可，无需命令行参数
@@ -23,19 +22,16 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from ultralytics import YOLO
 
-
 # ===== 在此处直接配置导出参数（按需修改） =====
 CONFIG = {
     # 输入权重（.pt）路径
     "model": "/root/YOLOv11/runs/train/exp/weights/best.pt",  # 替换为你的 .pt 权重
-
     # 导出配置
-    "imgsz": 640,          # 导出时的输入尺寸（可为单值或 [h, w]）
-    "opset": 12,           # ONNX opset，一般 12/13/17 均可
-    "dynamic": False,      # 是否导出动态输入（True 兼容性更好；False 性能稳定）
-    "simplify": True,      # 使用 onnx-simplifier 简化图
-    "half": False,         # 半精度（大多 CPU/ORT 不建议）
-
+    "imgsz": 640,  # 导出时的输入尺寸（可为单值或 [h, w]）
+    "opset": 12,  # ONNX opset，一般 12/13/17 均可
+    "dynamic": False,  # 是否导出动态输入（True 兼容性更好；False 性能稳定）
+    "simplify": True,  # 使用 onnx-simplifier 简化图
+    "half": False,  # 半精度（大多 CPU/ORT 不建议）
     # 输出目录（若为空则使用默认 runs/export）
     "project": "/root/YOLOv11/runs/export",
     "name": "onnx",
@@ -70,5 +66,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
